@@ -1,19 +1,23 @@
+import com.rsbuddy.event.events.MessageEvent;
+import com.rsbuddy.event.listeners.MessageListener;
 import com.rsbuddy.script.methods.Mouse;
 import com.rsbuddy.script.methods.Players;
 import com.rsbuddy.script.methods.Walking;
 import com.rsbuddy.script.util.Random;
 import com.rsbuddy.script.util.Timer;
 import com.rsbuddy.script.wrappers.Area;
+import com.rsbuddy.script.wrappers.GameObject;
 import com.rsbuddy.script.wrappers.Tile;
 import org.rsbuddy.tabs.Inventory;
 
-class MiningStrategy extends Strategy {
+class MiningStrategy extends Strategy implements MessageListener {
 
     private final Area miningArea = new Area(new Tile(2880, 10238), new Tile(2860, 10262));
-    private final OreTask oreTask;
+    private final RockTask rockTask;
+    private GameObject currentRock;
 
-    public MiningStrategy(OreTask oreTask) {
-        this.oreTask = oreTask;
+    public MiningStrategy(RockTask rockTask) {
+        this.rockTask = rockTask;
     }
 
     @Override
@@ -24,27 +28,33 @@ class MiningStrategy extends Strategy {
     @Override
     public void execute() {
         try {
-            if (this.playerIsNotBusy(Random.nextInt(1000, 1500))) {
-                if (!oreTask.nextRock().isOnScreen() && !Players.getLocal().isMoving()) {
-                    Walking.getTileOnMap(oreTask.nextRock().getLocation()).randomize(1, 1).clickOnMap();
+            if (currentRock == null) {
+                currentRock = rockTask.nextRock();
+                if (!currentRock.isOnScreen() && !Players.getLocal().isMoving()) {
+                    Walking.getTileOnMap(currentRock.getLocation()).randomize(1, 1).clickOnMap();
                 } else {
-                    oreTask.nextRock().interact("Mine");
+                    currentRock.interact("Mine");
                 }
             } else {
-                if (Mouse.isPresent()) {
-                    Mouse.moveOffScreen();
+                if (playerIsNotBusy(Random.nextInt(300, 500))) {
+                    currentRock = null;
+                } else {
+                    if (Mouse.isPresent()) {
+                        Mouse.moveOffScreen();
+                    }
                 }
             }
         } catch (NullPointerException ignored) {
-
-        } catch (ArrayIndexOutOfBoundsException ignored) {
-
         }
     }
 
     @Override
     public String toString() {
         return "Mining";
+    }
+
+    public void resetCurrentRock() {
+        currentRock = null;
     }
 
     boolean playerIsNotBusy(long milliseconds) throws NullPointerException {
@@ -55,5 +65,12 @@ class MiningStrategy extends Strategy {
             }
         }
         return true;
+    }
+
+    public void messageReceived(MessageEvent messageEvent) {
+        if (messageEvent.getMessage().contains("You manage to mine some")
+                || messageEvent.getMessage().contains("There is no ore currently available in this rock.")) {
+            currentRock = null;
+        }
     }
 }

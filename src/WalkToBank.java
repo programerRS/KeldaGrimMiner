@@ -27,7 +27,7 @@ class WalkToBank extends Strategy implements Paths {
             } catch (NullPointerException ignored) {
             }
         } else {
-            pathToBank.traverse();
+            pathToBank.randomize(2, 2).traverse();
         }
     }
 
@@ -35,4 +35,6 @@ class WalkToBank extends Strategy implements Paths {
     public String toString() {
         return "Walking to bank";
     }
+
+
 }

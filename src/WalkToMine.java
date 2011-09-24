@@ -11,11 +11,13 @@ class WalkToMine extends Strategy implements Paths {
 
     @Override
     public void execute() {
-        pathToMine.traverse();
+        pathToMine.randomize(2, 2).traverse();
     }
 
     @Override
     public String toString() {
         return "Walking to mine";
     }
+
+
 }

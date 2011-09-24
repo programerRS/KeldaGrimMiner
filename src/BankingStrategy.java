@@ -39,6 +39,7 @@ class BankingStrategy extends Strategy {
         return "Banking";
     }
 
+
     boolean waitForBankWidget(long milliseconds) {
         Timer t = new Timer(milliseconds);
         Widget w = Widgets.get(org.rsbuddy.widgets.Bank.WIDGET);

@@ -1,3 +1,5 @@
+import com.rsbuddy.event.events.MessageEvent;
+import com.rsbuddy.event.listeners.MessageListener;
 import com.rsbuddy.event.listeners.PaintListener;
 import com.rsbuddy.script.ActiveScript;
 import com.rsbuddy.script.Manifest;
@@ -12,23 +14,25 @@ import java.util.List;
 
 
 @Manifest(authors = "programer", name = "KeldaGrimMiner", keywords = "Mining", version = 1.0)
-public class Main extends ActiveScript implements PaintListener, MouseListener {
+public class Main extends ActiveScript implements PaintListener, MouseListener, MessageListener {
 
     private final List<Strategy> strategies = new ArrayList<Strategy>();
     private Painter painter;
     private MoneyHandler moneyHandler;
+    private MiningStrategy miningStrategy;
 
     @Override
     public boolean onStart() {
         painter = new Painter();
-        OreTask oreTask = new OreTask();
+        RockTask rockTask = new RockTask();
         moneyHandler = new MoneyHandler();
-        this.getContainer().submit(oreTask);
+        this.getContainer().submit(rockTask);
         this.getContainer().submit(moneyHandler);
         strategies.add(new WalkToBank());
         strategies.add(new BankingStrategy());
         strategies.add(new WalkToMine());
-        strategies.add(new MiningStrategy(oreTask));
+        miningStrategy = new MiningStrategy(rockTask);
+        strategies.add(miningStrategy);
         return true;
     }
 
@@ -42,16 +46,16 @@ public class Main extends ActiveScript implements PaintListener, MouseListener {
 
     @Override
     public int loop() {
-        for (Strategy strategy : strategies) {
-            if (strategy.isValid()) {
-                strategy.execute();
+        for (Strategy currentStrategy : strategies) {
+            if (currentStrategy.isValid()) {
+                painter.setTotalMoneyMade(moneyHandler.getTotalMoneyMade());
+                currentStrategy.execute();
             }
         }
         return Random.nextInt(300, 600);
     }
 
     public void onRepaint(Graphics graphics) {
-        painter.setTotalMoneyMade(moneyHandler.getTotalMoneyMade());
         painter.onRepaint(graphics);
     }
 
@@ -71,4 +75,10 @@ public class Main extends ActiveScript implements PaintListener, MouseListener {
     public void mouseExited(MouseEvent e) {
     }
 
+    public void messageReceived(MessageEvent messageEvent) {
+        if (miningStrategy.isValid())
+            miningStrategy.messageReceived(messageEvent);
+        else
+            miningStrategy.resetCurrentRock();
+    }
 }
