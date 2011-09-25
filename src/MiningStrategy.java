@@ -1,5 +1,6 @@
 import com.rsbuddy.event.events.MessageEvent;
 import com.rsbuddy.event.listeners.MessageListener;
+import com.rsbuddy.script.methods.Camera;
 import com.rsbuddy.script.methods.Mouse;
 import com.rsbuddy.script.methods.Players;
 import com.rsbuddy.script.methods.Walking;
@@ -31,6 +32,7 @@ class MiningStrategy extends Strategy implements MessageListener {
             if (currentRock == null) {
                 currentRock = rockTask.nextRock();
                 if (!currentRock.isOnScreen() && !Players.getLocal().isMoving()) {
+                    Camera.turnTo(currentRock);
                     Walking.getTileOnMap(currentRock.getLocation()).randomize(1, 1).clickOnMap();
                 } else {
                     currentRock.interact("Mine");
